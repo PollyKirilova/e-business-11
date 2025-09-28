@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="bg" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Основни модели на електронен бизнес</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Learning -->
+    <!-- Application Structure Plan: Проектът трансформира линейна презентация в интерактивно едностранично приложение (SPA). Вместо последователни слайдове, е избрана тематична структура с навигационна лента. Основните бизнес модели (B2C, B2B, C2C, C2B) са представени в интерактивна секция с табове, което позволява лесно сравнение. Добавена е Gemini API интеграция в секцията с домашна работа, за да генерира бизнес план от потребителски вход, което превръща пасивното упражнение в интерактивен инструмент за творчество и планиране. Тази структура насърчава активното учене. -->
+    <!-- Visualization & Content Choices: Информацията от презентацията е организирана в логически секции. Цел: Сравнение -> Метод: Интерактивна радарна диаграма (Chart.js), която се актуализира динамично. Цел: Организация -> Метод: Табове и картова решетка. Цел: Творческо приложение -> Метод: Gemini API извикване за генериране на текст (бизнес план) на базата на потребителско въвеждане. Интеракция: Потребителят пише идея, натиска бутон и получава генериран от AI план. Обосновка: Тази функция използва силата на LLM, за да предостави персонализирана и практическа стойност, затвърждавайки учебния материал. Библиотека: Chart.js (Canvas), Fetch API (for Gemini). -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdfaf6;
+            color: #4a4a4a;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+        }
+        .nav-link:hover {
+            color: #d97706;
+        }
+        .active-tab {
+            border-color: #d97706 !important;
+            color: #d97706 !important;
+            font-weight: 600;
+        }
+        .content-card {
+            background-color: #ffffff;
+            border: 1px solid #f0e9e1;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .content-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .gemini-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border-left-color: #d97706;
+            animation: spin 1s ease infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm border-b border-gray-200">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-amber-700">Е-Бизнес Модели</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#intro" class="nav-link text-gray-600 px-3 py-2 rounded-md text-sm font-medium">Увод</a>
+                        <a href="#models" class="nav-link text-gray-600 px-3 py-2 rounded-md text-sm font-medium">Основни Модели</a>
+                        <a href="#other-models" class="nav-link text-gray-600 px-3 py-2 rounded-md text-sm font-medium">Други Модели</a>
+                        <a href="#trends" class="nav-link text-gray-600 px-3 py-2 rounded-md text-sm font-medium">Тенденции</a>
+                        <a href="#exercise" class="nav-link text-gray-600 px-3 py-2 rounded-md text-sm font-medium">Упражнение</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+
+        <section id="hero" class="text-center py-16">
+            <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-800">Основни модели на електронен бизнес</h2>
+            <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-600">Интерактивен урок за специалност "Електронна търговия", 11 клас</p>
+        </section>
+
+        <section id="intro" class="my-16 scroll-mt-20">
+             <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-gray-800">Електронен бизнес vs. Електронна търговия</h3>
+                <p class="mt-2 text-md text-gray-500 max-w-3xl mx-auto">Преди да се потопим в различните модели, е важно да разберем фундаменталната разлика между тези две понятия. Тази секция изяснява обхвата на всяко от тях и как те си взаимодействат в дигиталния свят.</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8 items-start">
+                <div class="content-card rounded-xl p-8">
+                    <h4 class="text-2xl font-semibold text-amber-700">Електронна търговия (E-commerce)</h4>
+                    <p class="mt-4 text-gray-600">Фокусира се единствено върху онлайн трансакциите – процеса на покупко-продажба на продукти и услуги през интернет. Това е видимата за крайния клиент част, като пазаруване в онлайн магазин.</p>
+                </div>
+                <div class="content-card rounded-xl p-8">
+                    <h4 class="text-2xl font-semibold text-amber-700">Електронен бизнес (E-business)</h4>
+                    <p class="mt-4 text-gray-600">Това е много по-широко понятие. То обхваща абсолютно всички бизнес процеси, които се осъществяват с помощта на интернет и информационни технологии. Това включва:</p>
+                    <ul class="mt-4 space-y-2 list-disc list-inside text-gray-600">
+                        <li>Маркетинг и продажби</li>
+                        <li>Логистика и управление на доставки</li>
+                        <li>Обслужване на клиенти (CRM)</li>
+                        <li>Управление на инвентар</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="models" class="my-24 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-gray-800">Основните играчи на сцената</h3>
+                 <p class="mt-2 text-md text-gray-500 max-w-3xl mx-auto">Тук ще разгледаме четирите фундаментални бизнес модела, които определят как компаниите и потребителите взаимодействат помежду си. Изберете модел от табовете по-долу, за да видите детайлна информация, предимства, недостатъци и визуално сравнение.</p>
+            </div>
+            <div class="border-b border-gray-300 mb-8">
+                <nav class="-mb-px flex space-x-6 justify-center" aria-label="Tabs">
+                    <button data-model="b2c" class="model-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-amber-600 hover:border-amber-400 active-tab">B2C</button>
+                    <button data-model="b2b" class="model-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-amber-600 hover:border-amber-400">B2B</button>
+                    <button data-model="c2c" class="model-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-amber-600 hover:border-amber-400">C2C</button>
+                    <button data-model="c2b" class="model-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-amber-600 hover:border-amber-400">C2B</button>
+                </nav>
+            </div>
+            
+            <div id="model-content-container" class="grid lg:grid-cols-2 gap-12 items-center">
+                <div id="model-info" class="prose max-w-none"></div>
+                <div class="chart-container">
+                    <canvas id="modelChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="other-models" class="my-24 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-gray-800">Други Модели и Приходи</h3>
+                <p class="mt-2 text-md text-gray-500 max-w-3xl mx-auto">Освен основните четири модела, съществуват и други важни типове, включващи публичната администрация, както и специфични модели за генериране на приходи като Freemium. Тази секция ги разглежда накратко.</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="content-card rounded-xl p-6">
+                    <h4 class="font-semibold text-lg text-amber-700">Модели с администрацията</h4>
+                    <ul class="mt-2 space-y-1 text-sm text-gray-600 list-disc list-inside">
+                        <li><b>B2A (Business-to-Administration):</b> Бизнеси предоставят услуги на публичната администрация.</li>
+                        <li><b>C2A (Customer-to-Administration):</b> Потребители предлагат услуги на администрацията.</li>
+                        <li><b>G2B (Government-to-Business):</b> Сътрудничество между правителство и компании.</li>
+                        <li><b>G2C (Government-to-Citizen):</b> Онлайн плащане на данъци, регистрации и др.</li>
+                    </ul>
+                </div>
+                <div class="content-card rounded-xl p-6">
+                    <h4 class="font-semibold text-lg text-amber-700">Модел на приходи: Freemium</h4>
+                    <p class="mt-2 text-sm text-gray-600">Това не е модел на трансакция, а на приходи. Предлага се безплатна основна функционалност, а за премиум функции се плаща. Средно само 3% от потребителите плащат, но останалите 97% носят стойност чрез данни и създаване на "критична маса".</p>
+                </div>
+                 <div class="content-card rounded-xl p-6">
+                    <h4 class="font-semibold text-lg text-amber-700">Freemium при B2B</h4>
+                    <p class="mt-2 text-sm text-gray-600">При B2B модела, "безплатно" често се възприема като "некачествено" или "несигурно". Това може да бъде сериозна пречка, тъй като бизнес клиентите търсят надеждност и сигурност, за които са готови да платят.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="trends" class="my-24 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-gray-800">Тенденции, които оформят бъдещето</h3>
+                <p class="mt-2 text-md text-gray-500 max-w-3xl mx-auto">Бизнес моделите не са статични - те постоянно се развиват под влиянието на новите технологии. Разгледайте ключовите тенденции за 2024 г., които променят начина, по който правим бизнес онлайн.</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="content-card rounded-xl p-6 text-center">
+                    <h4 class="font-semibold text-lg text-amber-700">Изкуствен интелект (AI)</h4>
+                    <p class="mt-2 text-sm text-gray-600">AI помага за прогнозиране на навиците за пазаруване и за пълно персонализиране на уебсайта за всеки отделен посетител.</p>
+                </div>
+                <div class="content-card rounded-xl p-6 text-center">
+                    <h4 class="font-semibold text-lg text-amber-700">AR & VR</h4>
+                    <p class="mt-2 text-sm text-gray-600">Добавената и виртуална реалност подобряват преживяването и помагат при взимане на решение, позволявайки "пробване" на продукти.</p>
+                </div>
+                <div class="content-card rounded-xl p-6 text-center">
+                    <h4 class="font-semibold text-lg text-amber-700">Мобилна търговия</h4>
+                    <p class="mt-2 text-sm text-gray-600">Сайтът трябва да е безупречен и лесен за ползване от телефон. Мобилната търговия е в непрестанен и огромен ръст.</p>
+                </div>
+                 <div class="content-card rounded-xl p-6 text-center">
+                    <h4 class="font-semibold text-lg text-amber-700">Социална търговия</h4>
+                    <p class="mt-2 text-sm text-gray-600">Все повече потребители купуват директно от социалните платформи и от инфлуенсъри, без изобщо да напускат мрежата.</p>
+                </div>
+            </div>
+        </section>
+        
+        <section id="exercise" class="my-24 scroll-mt-20">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-gray-800">Упражнение и Задачи</h3>
+                <p class="mt-2 text-md text-gray-500 max-w-3xl mx-auto">Време е да приложите наученото! Тази секция съдържа интерактивно упражнение за анализ на казус, което можете да направите сега, както и задачи за домашна работа, за да задълбочите разбирането си.</p>
+            </div>
+            <div class="grid lg:grid-cols-2 gap-12">
+                <div class="content-card rounded-xl p-8">
+                    <h4 class="text-xl font-bold text-amber-700 mb-4">Анализ на казус (Упражнение в клас)</h4>
+                    <div class="space-y-4">
+                        <p>Изберете онлайн бизнес, за да анализирате неговия модел:</p>
+                        <div id="case-study-buttons" class="flex flex-wrap gap-3">
+                             <button data-case="emag" class="case-btn bg-gray-200 hover:bg-amber-600 hover:text-white text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors">eMAG</button>
+                            <button data-case="spotify" class="case-btn bg-gray-200 hover:bg-amber-600 hover:text-white text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors">Spotify</button>
+                            <button data-case="shutterstock" class="case-btn bg-gray-200 hover:bg-amber-600 hover:text-white text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors">Shutterstock</button>
+                            <button data-case="olx" class="case-btn bg-gray-200 hover:bg-amber-600 hover:text-white text-gray-700 font-semibold py-2 px-4 rounded-lg transition-colors">OLX</button>
+                        </div>
+                        <div id="case-study-analysis" class="mt-6 hidden prose prose-sm max-w-none"></div>
+                    </div>
+                </div>
+                <div class="content-card rounded-xl p-8">
+                    <h4 class="text-xl font-bold text-amber-700 mb-4">Домашна работа</h4>
+                    <div class="space-y-6">
+                        <div>
+                            <h5 class="font-semibold">Задача 1: Анализ на български онлайн магазин</h5>
+                            <p class="mt-1 text-sm text-gray-600">Изберете български онлайн магазин и напишете кратък анализ (до 1 страница), в който описвате неговия бизнес модел/и, посочвате две предимства и два недостатъка, и проверявате дали отговаря на законовите изисквания за публичност на информацията.</p>
+                        </div>
+                         <div>
+                            <h5 class="font-semibold">Задача 2: Творческа задача (с помощ от AI)</h5>
+                            <p class="mt-1 text-sm text-gray-600">Опишете вашата идея за онлайн бизнес с персонализирани тениски. Gemini ще ви помогне да я превърнете в кратък бизнес план.</p>
+                            <div class="mt-4">
+                                <textarea id="business-idea" class="w-full h-24 p-2 border border-gray-300 rounded-md focus:ring-amber-500 focus:border-amber-500" placeholder="Напр. 'Тениски с екологични бои и дизайни, вдъхновени от българския фолклор...'"></textarea>
+                                <button id="generate-plan-btn" class="mt-2 w-full bg-amber-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-700 transition-colors flex items-center justify-center disabled:bg-gray-400">
+                                    <span id="btn-text">✨ Генерирай бизнес план с Gemini</span>
+                                    <div id="gemini-spinner-btn" class="hidden gemini-spinner"></div>
+                                </button>
+                                <div id="gemini-result-container" class="mt-4 hidden">
+                                    <div id="gemini-output" class="prose prose-sm max-w-none text-gray-700 bg-amber-50/50 p-4 rounded-md border border-amber-200"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <footer class="bg-white border-t border-gray-200">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-500">
+            <p>&copy; 2024 Интерактивен урок по Електронна търговия. Всички права запазени.</p>
+        </div>
+    </footer>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modelsData = {
+                b2c: {
+                    title: 'Модел 1: Бизнес към потребител (B2C)',
+                    definition: 'Връзка, при която компания продава продукти или услуги директно на крайния потребител. Това е най-популярният и разпознаваем модел, характеризиращ се с кратък процес на вземане на решение от клиента. Примери са класическите онлайн магазини.',
+                    subtypes: {
+                        title: 'Подтипове',
+                        items: [
+                            '<b>Директен продавач:</b> Купувате директно от онлайн магазина на марката (Пример: Nike.com).',
+                            '<b>Онлайн посредник:</b> Платформи, свързващи купувачи и продавачи (Пример: Etsy, Trivago).',
+                            '<b>Базиран на реклама:</b> Сайтове с безплатно съдържание, печелещи от реклами.',
+                            '<b>Базиран на общност:</b> Онлайн общности, които се монетизират (Пример: Facebook).',
+                            '<b>Платен (Абонаментен):</b> Съдържание срещу абонамент (Пример: Netflix).'
+                        ]
+                    },
+                    pros: {
+                        title: 'Предимства',
+                        items: [
+                            'Възможност за глобални продажби.',
+                            'Кратък процес на вземане на решение.',
+                            'Лесно събиране на данни за клиентите.'
+                        ]
+                    },
+                    cons: {
+                        title: 'Недостатъци',
+                        items: [
+                            'Висока конкуренция и нужда от големи разходи за маркетинг.',
+                            'Задържането на клиент е до 5 пъти по-евтино от привличането на нов.',
+                            'Нужда от отлично клиентско изживяване (CX).'
+                        ]
+                    },
+                    chartData: [5, 2, 5, 3, 4]
+                },
+                b2b: {
+                    title: 'Модел 2: Бизнес към бизнес (B2B)',
+                    definition: 'Връзка, при която една компания продава своите продукти или услуги на друга компания. Продажбите в B2B онлайн пространството нарастват значително. Онлайн магазинът трябва да бъде място за бързо намиране на решения и информация от страна на работещи хора.',
+                    subtypes: {
+                        title: 'Типове търговски обмен',
+                        items: [
+                            '<b>Вертикален:</b> В рамките на един и същ бранш.',
+                            '<b>Хоризонтален:</b> Трансакции между различни браншове.'
+                        ]
+                    },
+                    pros: {
+                        title: 'Предимства',
+                        items: [
+                            'Висок процент на конверсия, тъй като клиентите знаят какво търсят.',
+                            'По-голям обем на поръчките (често се купува на едро).'
+                        ]
+                    },
+                    cons: {
+                        title: 'Недостатъци',
+                        items: [
+                            'Удължен процес на вземане на решение (одобрение от няколко души).',
+                            'Цената е ключов фактор и често е обект на преговори.'
+                        ]
+                    },
+                     chartData: [3, 5, 3, 5, 2]
+                },
+                c2c: {
+                    title: 'Модел 3: Потребител към потребител (C2C)',
+                    definition: 'Бизнес връзка между двама индивидуални потребители, улеснена от трета страна (платформа).',
+                    pros: {
+                        title: 'Предимства',
+                        items: [
+                            'Широк обхват на пазара чрез платформите.',
+                            'Ниски разходи за продавача (няма нужда от собствен домейн/маркетинг).',
+                            'По-ниска цена за купувача и по-висока печалба за продавача.'
+                        ]
+                    },
+                    cons: {
+                        title: 'Недостатъци',
+                        items: [
+                            'Липса на сигурност, че продуктът отговаря на реалността.',
+                            'Някои платформи не предлагат защита за купувача.'
+                        ]
+                    },
+                    chartData: [4, 2, 4, 2, 5]
+                },
+                c2b: {
+                    title: 'Модел 4: Потребител към бизнес (C2B)',
+                    definition: 'Обратен на традиционния модел, при който индивидуални потребители предоставят продукти или услуги на компании. Примери: блогъри, фотографи, експерти.',
+                    pros: {
+                        title: 'Предимства',
+                        items: [
+                            'Компаниите получават достъп до много таланти.',
+                            'Цените могат да се коригират според предлагането.'
+                        ]
+                    },
+                    cons: {
+                        title: 'Недостатъци',
+                        items: [
+                            'Компанията няма контрол върху цените, тъй като потребителите ги определят.'
+                        ]
+                    },
+                    chartData: [2, 3, 2, 4, 3]
+                }
+            };
+            
+            const caseStudiesData = {
+                emag: `
+                    <h4>Анализ на eMAG</h4>
+                    <ul class="list-disc pl-5 mt-2 space-y-1">
+                        <li><b>Основен модел:</b> B2C (Бизнес към потребител). eMAG продава директно на крайни клиенти.</li>
+                        <li><b>Вторичен модел:</b> C2C чрез Marketplace. Позволява на други търговци и физически лица да продават на платформата, като eMAG действа като посредник.</li>
+                        <li><b>Тенденция:</b> Използва AI за персонализирани препоръки на продукти и оптимизация на търсенето. Силно развита мобилна търговия.</li>
+                        <li><b>Предизвикателство:</b> Огромна конкуренция в сектора, управление на сложна логистика и доставки.</li>
+                    </ul>`,
+                spotify: `
+                    <h4>Анализ на Spotify</h4>
+                    <ul class="list-disc pl-5 mt-2 space-y-1">
+                        <li><b>Основен модел:</b> B2C (Бизнес към потребител) с абонаментен модел на приходи.</li>
+                        <li><b>Вторичен модел:</b> Модел на приходи Freemium, предлагащ безплатна версия с реклами, за да привлече потребители към платения план.</li>
+                        <li><b>Тенденция:</b> Използва AI за създаване на персонализирани плейлисти (Discover Weekly) и препоръки.</li>
+                        <li><b>Предизвикателство:</b> Преговори за лицензионни права с музикални компании и артисти, висока конкуренция от Apple Music, YouTube Music.</li>
+                    </ul>`,
+                shutterstock: `
+                     <h4>Анализ на Shutterstock</h4>
+                    <ul class="list-disc pl-5 mt-2 space-y-1">
+                        <li><b>Основен модел:</b> B2B и B2C. Продава лицензи за сток снимки, видеа и музика както на компании (за маркетинг), така и на индивидуални творци.</li>
+                        <li><b>Вторичен модел:</b> C2B. Платформата позволява на фотографи и създатели на съдържание (потребители) да продават своите творби на бизнеса.</li>
+                        <li><b>Тенденция:</b> Интегрира AI инструменти за генериране на изображения и улесняване на търсенето.</li>
+                        <li><b>Предизвикателство:</b> Конкуренция от безплатни платформи (Unsplash) и AI генератори, гарантиране на качеството и автентичността на съдържанието.</li>
+                    </ul>`,
+                olx: `
+                    <h4>Анализ на OLX</h4>
+                    <ul class="list-disc pl-5 mt-2 space-y-1">
+                        <li><b>Основен модел:</b> C2C (Потребител към потребител). Основната функция е да свързва индивидуални продавачи с индивидуални купувачи.</li>
+                        <li><b>Вторичен модел:</b> B2C за бизнес акаунти, които продават стоки. Модел на приходи Freemium - безплатни обяви, но платени опции за промотиране.</li>
+                        <li><b>Тенденция:</b> Силна оптимизация за мобилни устройства.</li>
+                        <li><b>Предизвикателство:</b> Гарантиране на сигурността на трансакциите, борба с измами и фалшиви обяви, поддържане на доверие в платформата.</li>
+                    </ul>`
+            };
+            
+            const modelInfoContainer = document.getElementById('model-info');
+            const modelTabs = document.querySelectorAll('.model-tab');
+            let modelChart;
+
+            function renderModelContent(modelKey) {
+                const data = modelsData[modelKey];
+                let subtypesHtml = '';
+                if (data.subtypes) {
+                    subtypesHtml = `
+                        <h3 class="font-semibold text-gray-700">${data.subtypes.title}</h3>
+                        <ul class="list-disc list-inside space-y-1 mt-2">
+                            ${data.subtypes.items.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    `;
+                }
+
+                modelInfoContainer.innerHTML = `
+                    <h2 class="text-2xl font-bold text-gray-800">${data.title}</h2>
+                    <p class="mt-4">${data.definition}</p>
+                    ${subtypesHtml}
+                    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-semibold text-green-700">${data.pros.title}</h3>
+                            <ul class="list-disc list-inside space-y-1 mt-2">
+                                ${data.pros.items.map(item => `<li>${item}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-red-700">${data.cons.title}</h3>
+                            <ul class="list-disc list-inside space-y-1 mt-2">
+                                ${data.cons.items.map(item => `<li>${item}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                updateChart(modelKey);
+            }
+
+            function updateChart(modelKey) {
+                const data = modelsData[modelKey].chartData;
+                if(modelChart) {
+                    modelChart.data.datasets[0].data = data;
+                    modelChart.update();
+                }
+            }
+
+            function initChart() {
+                const ctx = document.getElementById('modelChart').getContext('2d');
+                const initialData = modelsData.b2c.chartData;
+
+                Chart.defaults.font.family = "'Inter', sans-serif";
+
+                modelChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Скорост на решение', 'Обем на поръчки', 'Конкуренция', 'Ценова гъвкавост', 'Лоялност'],
+                        datasets: [{
+                            label: 'Характеристики на модела',
+                            data: initialData,
+                            backgroundColor: 'rgba(217, 119, 6, 0.2)',
+                            borderColor: 'rgba(217, 119, 6, 1)',
+                            pointBackgroundColor: 'rgba(217, 119, 6, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(217, 119, 6, 1)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                angleLines: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                },
+                                pointLabels: {
+                                    font: {
+                                        size: 12
+                                    },
+                                    color: '#4a4a4a'
+                                },
+                                suggestedMin: 0,
+                                suggestedMax: 5,
+                                ticks: {
+                                    stepSize: 1,
+                                    backdropColor: 'transparent',
+                                    color: '#71717a'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                             tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        label += ['Ниска', 'По-скоро ниска', 'Средна', 'По-скоро висока', 'Висока'][context.raw - 1];
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            modelTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    modelTabs.forEach(t => t.classList.remove('active-tab'));
+                    tab.classList.add('active-tab');
+                    const modelKey = tab.dataset.model;
+                    renderModelContent(modelKey);
+                });
+            });
+
+            const caseStudyButtons = document.querySelectorAll('.case-btn');
+            const caseStudyAnalysisContainer = document.getElementById('case-study-analysis');
+            caseStudyButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    caseStudyButtons.forEach(b => {
+                        b.classList.remove('bg-amber-600', 'text-white');
+                        b.classList.add('bg-gray-200', 'text-gray-700');
+                    });
+                    button.classList.add('bg-amber-600', 'text-white');
+                    button.classList.remove('bg-gray-200', 'text-gray-700');
+                    
+                    const caseKey = button.dataset.case;
+                    caseStudyAnalysisContainer.innerHTML = caseStudiesData[caseKey];
+                    caseStudyAnalysisContainer.style.display = 'block';
+                });
+            });
+            
+            const generatePlanBtn = document.getElementById('generate-plan-btn');
+            const businessIdeaInput = document.getElementById('business-idea');
+            const geminiResultContainer = document.getElementById('gemini-result-container');
+            const geminiOutput = document.getElementById('gemini-output');
+            const geminiSpinner = document.getElementById('gemini-spinner-btn');
+            const btnText = document.getElementById('btn-text');
+
+            generatePlanBtn.addEventListener('click', async () => {
+                const userIdea = businessIdeaInput.value.trim();
+                if (!userIdea) {
+                    geminiOutput.innerHTML = '<p>Моля, въведете вашата бизнес идея в полето отгоре.</p>';
+                    geminiResultContainer.style.display = 'block';
+                    return;
+                }
+
+                btnText.classList.add('hidden');
+                geminiSpinner.classList.remove('hidden');
+                generatePlanBtn.disabled = true;
+                geminiResultContainer.style.display = 'block';
+                geminiOutput.innerHTML = '';
+
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                const systemPrompt = "Act as a helpful business consultant for a high school student. Based on the user's idea for a custom t-shirt business, create a short, easy-to-understand business plan. The plan should be in Bulgarian, well-structured with clear headings (using markdown for bolding), and include: 1. A suggested business model (like B2C) with a brief justification. 2. A potential target audience. 3. A unique selling proposition (what makes the business special). 4. Two marketing ideas based on modern trends like social commerce, AI personalization, or influencer marketing.";
+
+                const payload = {
+                    contents: [{ parts: [{ text: userIdea }] }],
+                    systemInstruction: {
+                        parts: [{ text: systemPrompt }]
+                    },
+                };
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API Error: ${response.statusText}`);
+                    }
+
+                    const result = await response.json();
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    
+                    if (text) {
+                        let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                        formattedText = formattedText.replace(/\n/g, '<br>');
+                        geminiOutput.innerHTML = formattedText;
+                    } else {
+                        throw new Error("Невалиден отговор от API.");
+                    }
+
+                } catch (error) {
+                    console.error(error);
+                    geminiOutput.innerHTML = `<p class="text-red-600">Възникна грешка при генерирането на план. Моля, опитайте отново по-късно.</p>`;
+                } finally {
+                    btnText.classList.remove('hidden');
+                    geminiSpinner.classList.add('hidden');
+                    generatePlanBtn.disabled = false;
+                }
+            });
+
+
+            initChart();
+            renderModelContent('b2c');
+        });
+    </script>
+</body>
+</html>
+
